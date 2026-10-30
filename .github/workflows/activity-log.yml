@@ -1,16 +1,28 @@
 name: Update activity log
 on:
   schedule:
-    - cron: "0 */6 * * *"  # every 6 hours
-  workflow_dispatch:        # adds a "Run workflow" button
+    - cron: "0 */6 * * *"
+  workflow_dispatch:
 permissions:
-  contents: read            # the PAT does the write
+  contents: read
 jobs:
   update:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.TOKEN }}   # 用 PAT push，才會觸發下一個 workflow
       - uses: TheDanniCraft/activity-log@v1
         with:
           GITHUB_USERNAME: Juinn226
           GITHUB_TOKEN: ${{ secrets.TOKEN }}
+      - name: Stamp last updated time
+        run: |
+          git pull --rebase
+          sed -i '/^_Last updated:/d' README.md
+          echo "_Last updated: $(TZ=Asia/Taipei date '+%Y-%m-%d %H:%M') (Taipei)_" >> README.md
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add README.md
+          git commit -m "Update README last-updated time" || exit 0
+          git push
