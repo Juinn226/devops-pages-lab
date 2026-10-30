@@ -13,5 +13,4 @@
 9. Added [Juin226/activity-log](https://github.com/Juin226/activity-log)
 10. 🍴 Forked [TheDanniCraft/activity-log](https://github.com/TheDanniCraft/activity-log)
 <!--END_SECTION:activity-->
-[About me](missing-page.html)
 _Last updated: 2026-10-30 23:03 (Taipei)_
