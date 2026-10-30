@@ -1,5 +1,11 @@
 # Hi, I'm Wen-Juin Chen
 
+## About this repo
+DevOps lab: a GitHub Pages site whose homepage updates automatically.
+
+- **Update activity log** (`activity-log.yml`): runs every 6 hours or manually, writes my latest GitHub activity into this README and pushes with a PAT.
+- **Build, validate and deploy** (`deploy.yml`): triggered by each push to `main`; builds the site with Jekyll, checks it with htmlproofer, and deploys to Pages only if validation passes.
+
 ## Recent activity
 <!--START_SECTION:activity-->
 1. 🎉 Created a new branch feat/Juinn-note in [Cindy5180/activity-log-ci-lab](https://github.com/Cindy5180/activity-log-ci-lab/tree/feat/Juinn-note)
