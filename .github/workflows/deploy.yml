@@ -1,0 +1,80 @@
+name: Build, validate and deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/configure-pages@v5
+      - name: Build with Jekyll
+        uses: actions/jekyll-build-pages@v1
+        with:
+          source: ./
+          destination: ./_site
+      - name: Save site for validation
+        uses: actions/upload-artifact@v4
+        with:
+          name: site
+          path: ./_site
+      - name: Save site for deployment
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./_site
+
+  validate:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: site
+          path: ./_site
+
+      - name: Check README markers
+        run: |
+          grep -q '<!--START_SECTION:activity-->' README.md || { echo "::error::START marker missing"; exit 1; }
+          grep -q '<!--END_SECTION:activity-->' README.md || { echo "::error::END marker missing"; exit 1; }
+          echo "README markers OK"
+
+      - name: Check homepage was built correctly
+        run: |
+          test -f _site/index.html || { echo "::error::index.html not built"; exit 1; }
+          if grep -q 'include_relative' _site/index.html; then
+            echo "::error::Jekyll include was not processed"; exit 1
+          fi
+          grep -q 'Recent activity' _site/index.html || { echo "::error::Activity section missing"; exit 1; }
+          echo "Homepage OK"
+
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.3'
+      - name: Check HTML and internal links
+        run: |
+          gem install html-proofer --no-document
+          htmlproofer ./_site --disable-external --swap-urls '^/devops-pages-lab/:/'
+
+  deploy:
+    needs: [build, validate]
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
